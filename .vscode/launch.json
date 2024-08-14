@@ -1,0 +1,21 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "MusplayApplication",
+            "request": "launch",
+            "mainClass": "com.server.musplay.MusplayApplication",
+            "projectName": "musplay"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-MusplayApplication<musplay>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.musplay.musplay.MusplayApplication",
+            "projectName": "musplay",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}
