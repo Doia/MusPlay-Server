@@ -28,6 +28,15 @@ Instalaciones necesarias antes de correr la aplicacion.
             4. abrir consola de comando -> "node --verion" -> debería salir algo asi: "v20.16.0"
             4. abrir consola de comando -> "npm --verion" -> debería salir algo asi: "10.8.1"
 
+2. BBDD
+    1. Instalar BBDD mySql
+    2. abrir mysql: "mysql -u root"
+    3. crear la base de datos y el usuario: 
+        "CREATE DATABASE musplay_bbdd;"
+        "ALTER USER 'root'@'localhost' IDENTIFIED BY '1234';"
+
+
+
 
 1. introducir comando: "cd musPlay-Server/springboot-crud"
 2. Si es la primera vez introducir comando: "mvn clean install"
@@ -36,3 +45,9 @@ Instalaciones necesarias antes de correr la aplicacion.
 4. El resto de veces introducir comando: "mvn spring-boot:run"
 
 Tras instalar todo deberia funcionar.
+
+//pc corporativo en powershell
+
+$env:JAVA_HOME="C:\Users\diego.demiguel\java\jdk-17.0.12"
+$env:PATH="$env:JAVA_HOME\bin;$env:PATH"
+./mvnw spring-boot:run

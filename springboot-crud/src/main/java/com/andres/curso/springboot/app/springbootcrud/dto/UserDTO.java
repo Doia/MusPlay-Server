@@ -1,4 +1,4 @@
-package com.andres.curso.springboot.app.dto;
+package com.andres.curso.springboot.app.springbootcrud.dto;
 
 import java.util.List;
 import java.util.Set;

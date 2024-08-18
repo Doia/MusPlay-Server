@@ -1,5 +1,6 @@
 package com.andres.curso.springboot.app.springbootcrud.services;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -17,7 +18,10 @@ import java.util.Optional;
 @Transactional
 public class FriendRequestServiceImpl implements FriendRequestService {
 
+    @Autowired
     private final UserRepository userRepository;
+
+    @Autowired
     private final FriendRequestRepository friendRequestRepository;
 
     public FriendRequestServiceImpl(UserRepository userRepository, FriendRequestRepository friendRequestRepository) {

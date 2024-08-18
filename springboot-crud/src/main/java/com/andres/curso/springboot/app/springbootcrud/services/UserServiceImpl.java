@@ -12,8 +12,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.andres.curso.springboot.app.dto.PrivacyLevel;
-import com.andres.curso.springboot.app.dto.UserDTO;
+import com.andres.curso.springboot.app.springbootcrud.dto.PrivacyLevel;
+import com.andres.curso.springboot.app.springbootcrud.dto.UserDTO;
 import com.andres.curso.springboot.app.springbootcrud.entities.Role;
 import com.andres.curso.springboot.app.springbootcrud.entities.User;
 import com.andres.curso.springboot.app.springbootcrud.repositories.RoleRepository;
@@ -132,6 +132,11 @@ public class UserServiceImpl implements UserService {
                     return resp;
                 })
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public void updateUser(User user) {
+        repository.save(user);
     }
 
     // Método para obtener el DTO basado en el nivel de acceso
