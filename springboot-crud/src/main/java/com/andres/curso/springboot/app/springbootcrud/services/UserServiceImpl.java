@@ -7,6 +7,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -16,10 +17,10 @@ import com.andres.curso.springboot.app.springbootcrud.dto.PrivacyLevel;
 import com.andres.curso.springboot.app.springbootcrud.dto.UserDTO;
 import com.andres.curso.springboot.app.springbootcrud.entities.Role;
 import com.andres.curso.springboot.app.springbootcrud.entities.User;
+import com.andres.curso.springboot.app.springbootcrud.exceptions.ErrorMessages;
+import com.andres.curso.springboot.app.springbootcrud.exceptions.ServerException;
 import com.andres.curso.springboot.app.springbootcrud.repositories.RoleRepository;
 import com.andres.curso.springboot.app.springbootcrud.repositories.UserRepository;
-
-import org.springframework.security.core.Authentication;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +29,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
+@Transactional
 public class UserServiceImpl implements UserService {
 
     private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
@@ -48,12 +50,10 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional
     public User save(User user) {
-
-        Optional<Role> optionalRoleUser = roleRepository.findByName("ROLE_USER");
         List<Role> roles = new ArrayList<>();
 
+        Optional<Role> optionalRoleUser = roleRepository.findByName("ROLE_USER");
         optionalRoleUser.ifPresent(roles::add);
 
         if (user.isAdmin()) {
@@ -73,30 +73,21 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User findById(Long id) {
-        Optional<User> resp = repository.findById(id);
-        if (resp.isPresent()) {
-            return resp.get();
-        }
-        return null;
+        return repository.findById(id)
+                .orElseThrow(() -> new ServerException(ErrorMessages.USER_NOT_FOUND));
     }
 
     @Override
     public User findByUsername(String username) {
-        Optional<User> resp = repository.findByUsername(username);
-        if (resp.isPresent()) {
-            return resp.get();
-        }
-        return null;
+        return repository.findByUsername(username)
+                .orElseThrow(() -> new ServerException(ErrorMessages.USER_NOT_FOUND));
     }
 
     @Override
     public List<UserDTO> findUserFriends() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User authenticationUser = repository.findByUsername(authentication.getName())
-                .orElseThrow(() -> new RuntimeException("Current user not found"));
+        User authenticationUser = getAuthenticatedUser();
 
         Set<String> friendsUsernames = authenticationUser.getFriends();
-
         if (friendsUsernames.isEmpty()) {
             return List.of(); // Devuelve una lista vacía si no tiene amigos
         }
@@ -110,15 +101,12 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<UserDTO> findFriendsOfUser(String username) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User authenticationUser = repository.findByUsername(authentication.getName())
-                .orElseThrow(() -> new RuntimeException("Current user not found"));
+        User authenticationUser = getAuthenticatedUser();
 
         User user = repository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ServerException(ErrorMessages.USER_NOT_FOUND));
 
         Set<String> friendsUsernames = user.getFriends();
-
         if (friendsUsernames.isEmpty()) {
             return List.of(); // Devuelve una lista vacía si no tiene amigos
         }
@@ -139,30 +127,59 @@ public class UserServiceImpl implements UserService {
         repository.save(user);
     }
 
-    // Método para obtener el DTO basado en el nivel de acceso
+    @Override
+    public void delete(Long id) {
+        User user = null;
+        User authenticatedUser = getAuthenticatedUser();
+
+        if (authenticatedUser.getId() != id && !authenticatedUser.isAdmin()) {
+            throw new ServerException(ErrorMessages.UNAUTHORIZED_ACCESS);
+        }
+
+        if (authenticatedUser.getId() != id) {
+            user = repository.findById(id)
+                    .orElseThrow(() -> new ServerException(ErrorMessages.USER_NOT_FOUND));
+        } else {
+            user = authenticatedUser;
+        }
+
+        try {
+            repository.delete(user);
+        } catch (Exception e) {
+            throw new ServerException(ErrorMessages.USER_DELETION_FAILED);
+        }
+    }
+
+    @Override
+    public void delete(String username) {
+        User user = null;
+        User authenticatedUser = getAuthenticatedUser();
+
+        if (!authenticatedUser.getUsername().equals(username) && !authenticatedUser.isAdmin()) {
+            throw new ServerException(ErrorMessages.UNAUTHORIZED_ACCESS);
+        }
+
+        if (authenticatedUser.getUsername() != username) {
+            user = repository.findByUsername(username)
+                    .orElseThrow(() -> new ServerException(ErrorMessages.USER_NOT_FOUND));
+        } else {
+            user = authenticatedUser;
+        }
+
+        try {
+            repository.delete(user);
+        } catch (Exception e) {
+            throw new ServerException(ErrorMessages.USER_DELETION_FAILED);
+        }
+    }
+
+    @Override
     public UserDTO getUserDTO(User user) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User currentUser = repository.findByUsername(authentication.getName())
-                .orElseThrow(() -> new RuntimeException("Current user not found"));
+        User currentUser = getAuthenticatedUser();
 
         // Verificar si es el propietario o un administrador
         if (currentUser.getRoles().contains("ROLE_ADMIN") || currentUser.getId().equals(user.getId())) {
-
-            UserDTO userDTO = new UserDTO(user, PrivacyLevel.FULL);
-
-            ObjectMapper objectMapper = new ObjectMapper();
-
-            try {
-                String jsonString = objectMapper.writeValueAsString(user);
-                System.out.println(jsonString);
-                jsonString = objectMapper.writeValueAsString(userDTO);
-                System.out.println(jsonString);
-            } catch (JsonProcessingException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-            return userDTO;
-
+            return createUserDTOWithFullPrivacy(user);
         }
 
         // Verificar si son amigos o si el perfil es público
@@ -174,4 +191,22 @@ public class UserServiceImpl implements UserService {
         return new UserDTO(user, PrivacyLevel.PRIVATE);
     }
 
+    private User getAuthenticatedUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return repository.findByUsername(authentication.getName())
+                .orElseThrow(() -> new ServerException(ErrorMessages.AUTHENTICATED_USER_NOT_FOUND));
+    }
+
+    private UserDTO createUserDTOWithFullPrivacy(User user) {
+        UserDTO userDTO = new UserDTO(user, PrivacyLevel.FULL);
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            String jsonString = objectMapper.writeValueAsString(user);
+            jsonString = objectMapper.writeValueAsString(userDTO);
+        } catch (JsonProcessingException e) {
+            throw new ServerException(ErrorMessages.JSON_PROCESSING_ERROR);
+        }
+        return userDTO;
+    }
 }

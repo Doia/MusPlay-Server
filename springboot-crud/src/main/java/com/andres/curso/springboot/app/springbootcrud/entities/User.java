@@ -250,4 +250,8 @@ public class User {
             return false;
         return true;
     }
+
+    public boolean isFollowing(String username2) {
+        return true;
+    }
 }

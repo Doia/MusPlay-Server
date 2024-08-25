@@ -46,6 +46,7 @@ public class SpringSecurityConfig {
         return http.authorizeHttpRequests((authz) -> authz
                 .requestMatchers(HttpMethod.POST, "/login").permitAll()
                 .requestMatchers(HttpMethod.POST, "/register").permitAll()
+                .requestMatchers("/profile-images/**").permitAll()
                 .anyRequest().authenticated())
                 .addFilter(new JwtAuthenticationFilter(authenticationManager()))
                 .addFilter(new JwtValidationFilter(authenticationManager()))

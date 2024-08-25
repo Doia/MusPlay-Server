@@ -1,7 +1,6 @@
 package com.andres.curso.springboot.app.springbootcrud.services;
 
 import java.util.List;
-import java.util.Optional;
 
 import com.andres.curso.springboot.app.springbootcrud.dto.UserDTO;
 import com.andres.curso.springboot.app.springbootcrud.entities.User;
@@ -25,4 +24,8 @@ public interface UserService {
     UserDTO getUserDTO(User user);
 
     List<UserDTO> findFriendsOfUser(String username);
+
+    void delete(Long id);
+
+    void delete(String username);
 }

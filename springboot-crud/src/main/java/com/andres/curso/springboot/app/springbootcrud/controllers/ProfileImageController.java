@@ -16,8 +16,11 @@ import com.andres.curso.springboot.app.springbootcrud.services.ImageService;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @CrossOrigin(origins = "http://localhost:4200", originPatterns = "*")
@@ -30,18 +33,45 @@ public class ProfileImageController {
     @Autowired
     private ImageService imageService;
 
-    private final Path rootLocation = Paths.get("resources/profile-images"); // Ruta para almacenar las imágenes
+    private final Path rootLocation = Paths.get("resources/images/profile-images"); // Ruta para almacenar las imágenes
+
+    @GetMapping("/{filename:.+}")
+    public ResponseEntity<Resource> getProfileImage(@PathVariable String filename) {
+        try {
+            Path filePath = rootLocation.resolve(filename).normalize();
+            System.out.println(filePath.toAbsolutePath());
+            Resource resource = new UrlResource(filePath.toUri());
+
+            if (resource.exists()) {
+                return ResponseEntity.ok()
+                        .header(HttpHeaders.CONTENT_TYPE, Files.probeContentType(filePath))
+                        .body(resource);
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            }
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
 
     @PostMapping("/upload")
-    public ResponseEntity<String> uploadProfileImage(@RequestParam("file") MultipartFile file) {
+    public ResponseEntity<Map<String, String>> uploadProfileImage(@RequestParam("file") MultipartFile file) {
         try {
 
             // Guardar la nueva imagen
-            String filename = imageService.storeImage(file, "/profile-images");
+            String filename = imageService.storeProfileImage(file, "/profile-images");
 
-            return ResponseEntity.status(HttpStatus.CREATED).body("Profile image uploaded successfully");
+            // Crear un mapa para la respuesta JSON
+            Map<String, String> response = new HashMap<>();
+            response.put("msg", "Profile image uploaded successfully");
+            response.put("profileImagePath", filename);
+
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to upload profile image");
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Failed to upload profile image");
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
 
@@ -58,24 +88,6 @@ public class ProfileImageController {
             }
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to delete profile image");
-        }
-    }
-
-    @GetMapping("/get/{filename}")
-    public ResponseEntity<Resource> getProfileImage(@PathVariable String filename) {
-        try {
-            Path file = rootLocation.resolve(filename);
-            Resource resource = new UrlResource(file.toUri());
-
-            if (resource.exists() || resource.isReadable()) {
-                return ResponseEntity.ok()
-                        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
-                        .body(resource);
-            } else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-            }
-        } catch (MalformedURLException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
     }
 }

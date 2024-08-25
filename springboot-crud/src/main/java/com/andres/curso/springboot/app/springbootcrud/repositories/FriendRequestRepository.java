@@ -8,6 +8,7 @@ import com.andres.curso.springboot.app.springbootcrud.entities.FriendRequest;
 import com.andres.curso.springboot.app.springbootcrud.entities.User;
 
 public interface FriendRequestRepository extends JpaRepository<FriendRequest, Long> {
+
     boolean existsBySenderAndReceiver(User sender, User receiver);
 
     // Método para obtener todas las solicitudes de amistad recibidas por un usuario

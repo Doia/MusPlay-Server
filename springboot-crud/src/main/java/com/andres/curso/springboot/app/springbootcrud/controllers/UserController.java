@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.andres.curso.springboot.app.springbootcrud.dto.PrivacyLevel;
 import com.andres.curso.springboot.app.springbootcrud.dto.UserDTO;
 import com.andres.curso.springboot.app.springbootcrud.entities.User;
 import com.andres.curso.springboot.app.springbootcrud.services.UserService;
@@ -30,11 +32,6 @@ public class UserController {
 
     @Autowired
     private UserService service;
-
-    @GetMapping
-    public List<User> list() {
-        return service.findAll();
-    }
 
     @GetMapping("/users/id/{id}")
     public UserDTO getUserById(@PathVariable Long id) {
@@ -70,7 +67,20 @@ public class UserController {
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody User user, BindingResult result) {
         user.setAdmin(false);
+        user.setPrivacyLevel(PrivacyLevel.PUBLIC);
         return create(user, result);
+    }
+
+    @PreAuthorize("hasRole('ADMIN') or #username == authentication.name")
+    @DeleteMapping("/users/{username}")
+    public ResponseEntity<Map<String, Object>> delete(@PathVariable String username) {
+
+        service.delete(username);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("msg", "User deleted successfully");
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     private ResponseEntity<?> validation(BindingResult result) {
