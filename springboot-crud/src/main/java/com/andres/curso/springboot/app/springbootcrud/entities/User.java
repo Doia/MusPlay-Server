@@ -1,34 +1,20 @@
 package com.andres.curso.springboot.app.springbootcrud.entities;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import com.andres.curso.springboot.app.springbootcrud.dto.PrivacyLevel;
-import com.andres.curso.springboot.app.springbootcrud.validation.ExistsByUsername;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-import jakarta.persistence.CollectionTable;
-import jakarta.persistence.Column;
-import jakarta.persistence.ElementCollection;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.Table;
-import jakarta.persistence.Transient;
-import jakarta.persistence.UniqueConstraint;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+
+import com.andres.curso.springboot.app.springbootcrud.dto.PrivacyLevel;
+import com.andres.curso.springboot.app.springbootcrud.dto.UserBasicDTO;
+import com.andres.curso.springboot.app.springbootcrud.dto.UserBasicDTOImpl;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.List;
 
 @Entity
 @Table(name = "users")
@@ -38,7 +24,6 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ExistsByUsername
     @NotBlank
     @Size(min = 4, max = 12)
     @Column(unique = true)
@@ -53,12 +38,11 @@ public class User {
     @Column(unique = true)
     private String email;
 
-    @Size(min = 7, max = 15)
     @Column(unique = false)
     private String phone;
 
     @Size(max = 50)
-    private String firstName;
+    private String name;
 
     @Size(max = 50)
     private String lastName;
@@ -75,25 +59,34 @@ public class User {
             @UniqueConstraint(columnNames = { "user_id", "role_id" }) })
     private List<Role> roles;
 
-    @ElementCollection
-    @CollectionTable(name = "user_friends", joinColumns = @JoinColumn(name = "user_id"))
-    @Column(name = "friend_username")
-    private Set<String> friends = new HashSet<>();
+    @ManyToMany
+    @JoinTable(name = "user_followers", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "follower_id"))
+    private Set<User> followers = new HashSet<>();
+
+    @ManyToMany
+    @JoinTable(name = "user_follows", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "follows_id"))
+    private Set<User> follows = new HashSet<>();
+
+    @OneToMany(mappedBy = "receiver")
+    private Set<FollowRequest> receivedFollowRequests = new HashSet<>();
+
+    @OneToMany(mappedBy = "sender")
+    private Set<FollowRequest> sentFollowRequests = new HashSet<>();
 
     @Enumerated(EnumType.STRING)
     @Column(name = "privacy_level")
     private PrivacyLevel privacyLevel;
 
-    public User() {
-        roles = new ArrayList<>();
-        friends = new HashSet<>();
-    }
-
-    private boolean enabled;
-
     @Transient
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private boolean admin;
+
+    @Column(nullable = false)
+    private boolean enabled = true;
+
+    public User() {
+        roles = new ArrayList<>();
+    }
 
     @PrePersist
     public void prePersist() {
@@ -140,12 +133,12 @@ public class User {
         this.password = password;
     }
 
-    public String getFirstName() {
-        return firstName;
+    public String getName() {
+        return name;
     }
 
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getLastName() {
@@ -180,20 +173,44 @@ public class User {
         this.roles = roles;
     }
 
-    public Set<String> getFriends() {
-        return friends;
+    public Set<User> getFollowers() {
+        return followers;
     }
 
-    public void setFriends(Set<String> friends) {
-        this.friends = friends;
+    public void setFollowers(Set<User> followers) {
+        this.followers = followers;
     }
 
-    public void addFriend(User friend) {
-        this.friends.add(friend.getUsername());
+    public int getFollowersCount() {
+        return followers.size();
     }
 
-    public void removeFriend(User friend) {
-        this.friends.remove(friend.getUsername());
+    public Set<User> getFollows() {
+        return follows;
+    }
+
+    public void setFollows(Set<User> follows) {
+        this.follows = follows;
+    }
+
+    public int getFollowsCount() {
+        return follows.size();
+    }
+
+    public Set<FollowRequest> getReceivedFollowRequests() {
+        return receivedFollowRequests;
+    }
+
+    public void setFollowRequest(Set<FollowRequest> receivedFollowRequests) {
+        this.receivedFollowRequests = receivedFollowRequests;
+    }
+
+    public Set<FollowRequest> getSentFollowRequests() {
+        return sentFollowRequests;
+    }
+
+    public void setSentFollowRequests(Set<FollowRequest> sentFollowRequests) {
+        this.sentFollowRequests = sentFollowRequests;
     }
 
     public boolean isAdmin() {
@@ -218,6 +235,16 @@ public class User {
 
     public void setPrivacyLevel(PrivacyLevel privacyLevel) {
         this.privacyLevel = privacyLevel;
+    }
+
+    // DTOs
+
+    public UserBasicDTO toUserBasicDTO() {
+        return new UserBasicDTOImpl(
+                this.id,
+                this.username,
+                this.imagePath,
+                this.name);
     }
 
     @Override

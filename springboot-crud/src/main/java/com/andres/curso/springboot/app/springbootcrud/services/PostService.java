@@ -16,6 +16,8 @@ public interface PostService {
 
     PostDTO findById(Long id);
 
+    List<PostDTO> getFeedPosts();
+
     List<PostDTO> findPostsByUsername(String username);
 
     CommentDTO addComment(Long postId, @Valid Comment comment);

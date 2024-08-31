@@ -2,6 +2,10 @@ package com.andres.curso.springboot.app.springbootcrud.entities;
 
 import java.time.LocalDateTime;
 
+import com.andres.curso.springboot.app.springbootcrud.dto.CommentDTO;
+import com.andres.curso.springboot.app.springbootcrud.dto.CommentDTOImpl;
+import com.andres.curso.springboot.app.springbootcrud.dto.UserBasicDTO;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -26,13 +30,13 @@ public class Comment {
 
     @ManyToOne
     @JoinColumn(name = "user_id")
-    private User author;
+    private User owner;
 
     @NotNull
     @Size(max = 256)
     private String content;
 
-    private LocalDateTime createdDate;
+    private LocalDateTime createdAt;
 
     // Getters y Setters
 
@@ -52,12 +56,12 @@ public class Comment {
         this.post = post;
     }
 
-    public User getAuthor() {
-        return author;
+    public User getOwner() {
+        return owner;
     }
 
-    public void setAuthor(User author) {
-        this.author = author;
+    public void setOwner(User owner) {
+        this.owner = owner;
     }
 
     public String getContent() {
@@ -69,10 +73,23 @@ public class Comment {
     }
 
     public LocalDateTime getCreatedDate() {
-        return createdDate;
+        return createdAt;
     }
 
     public void setCreatedDate(LocalDateTime createdDate) {
-        this.createdDate = createdDate;
+        this.createdAt = createdDate;
+    }
+
+    // Dtos
+
+    // Método para convertir la entidad Comment a su CommentDTO
+    public CommentDTO toCommentDTO() {
+        // Convertimos el autor a UserBasicDTO usando el método definido en User
+        UserBasicDTO ownerDTO = owner.toUserBasicDTO();
+        // Creamos un PostSummaryDTO a partir de la información de la entidad Post
+        CommentDTO.PostSummaryDTO postSummaryDTO = new CommentDTOImpl.PostSummaryDTOImpl(post.getId());
+
+        // Retornamos la implementación de CommentDTO
+        return new CommentDTOImpl(id, content, createdAt, postSummaryDTO, ownerDTO);
     }
 }

@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import org.springframework.data.repository.CrudRepository;
 
+import com.andres.curso.springboot.app.springbootcrud.dto.UserBasicDTO;
 import com.andres.curso.springboot.app.springbootcrud.entities.User;
 
 public interface UserRepository extends CrudRepository<User, Long> {
@@ -15,4 +16,6 @@ public interface UserRepository extends CrudRepository<User, Long> {
     Optional<User> findById(Long id);
 
     List<User> findByUsernameIn(List<String> usernames);
+
+    List<UserBasicDTO> findByUsernameContainingOrNameContaining(String username, String name);
 }

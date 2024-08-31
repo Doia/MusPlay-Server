@@ -1,8 +1,10 @@
 package com.andres.curso.springboot.app.springbootcrud.services;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.time.LocalDateTime;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,7 +14,9 @@ import org.springframework.stereotype.Service;
 
 import com.andres.curso.springboot.app.springbootcrud.dto.CommentDTO;
 import com.andres.curso.springboot.app.springbootcrud.dto.PostDTO;
+import com.andres.curso.springboot.app.springbootcrud.dto.PostDTOImpl;
 import com.andres.curso.springboot.app.springbootcrud.dto.PrivacyLevel;
+import com.andres.curso.springboot.app.springbootcrud.dto.UserBasicDTO;
 import com.andres.curso.springboot.app.springbootcrud.entities.Comment;
 import com.andres.curso.springboot.app.springbootcrud.entities.Post;
 import com.andres.curso.springboot.app.springbootcrud.entities.User;
@@ -95,6 +99,28 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
+    public List<PostDTO> getFeedPosts() {
+        User authenticatedUser = getAuthenticatedUser();
+
+        try {
+            // Obtén los posts del usuario
+            List<PostDTO> userPosts = postRepository.findByOwner(authenticatedUser);
+
+            // Obtén los posts de los amigos del usuario
+            List<PostDTO> friendsPosts = postRepository.findByOwnerIn(authenticatedUser.getFollows());
+
+            // Combina las listas de posts y ordénalas por fecha
+            List<PostDTO> allPosts = Stream.concat(userPosts.stream(), friendsPosts.stream())
+                    .sorted(Comparator.comparing(PostDTO::getCreatedDate).reversed())
+                    .collect(Collectors.toList());
+
+            return allPosts;// .stream().map(this::convertToDTO).collect(Collectors.toList());
+        } catch (Exception e) {
+            throw new ServerException(ErrorMessages.DATABASE_ERROR);
+        }
+    }
+
+    @Override
     public List<PostDTO> findPostsByUsername(String username) {
         User authenticatedUser = getAuthenticatedUser();
 
@@ -108,8 +134,8 @@ public class PostServiceImpl implements PostService {
         }
 
         try {
-            List<Post> posts = postRepository.findByOwner(user);
-            return posts.stream().map(this::convertToDTO).collect(Collectors.toList());
+            List<PostDTO> posts = postRepository.findByOwner(user);
+            return posts;// .stream().map(this::convertToDTO).collect(Collectors.toList());
         } catch (Exception e) {
             throw new ServerException(ErrorMessages.DATABASE_ERROR);
         }
@@ -133,7 +159,7 @@ public class PostServiceImpl implements PostService {
 
         // Asignar el post y el autor al comentario
         comment.setPost(post);
-        comment.setAuthor(authenticatedUser);
+        comment.setOwner(authenticatedUser);
         comment.setCreatedDate(LocalDateTime.now());
 
         try {
@@ -146,7 +172,7 @@ public class PostServiceImpl implements PostService {
             // volvemos al estado anterior
             throw new ServerException(ErrorMessages.COMMENT_CREATION_FAILED);
         }
-        return convertToDTO(comment);
+        return comment.toCommentDTO();
     }
 
     @Override
@@ -162,7 +188,7 @@ public class PostServiceImpl implements PostService {
         // Si el comentario es tuyo o eres admin o eres el dueño del post
 
         if (!post.getOwner().equals(authenticatedUser) && !authenticatedUser.isAdmin() &&
-                !comment.getAuthor().equals(authenticatedUser)) {
+                !comment.getOwner().equals(authenticatedUser)) {
             throw new ServerException(ErrorMessages.UNAUTHORIZED_ACCESS);
         }
 
@@ -221,38 +247,23 @@ public class PostServiceImpl implements PostService {
         }
     }
 
-    public PostDTO convertToDTO(Post post) {
-        PostDTO postDTO = new PostDTO();
-        postDTO.setId(post.getId());
-        postDTO.setContent(post.getContent());
-        postDTO.setImagePath(post.getImagePath());
-        postDTO.setOwner(post.getOwner().getUsername());
-        postDTO.setCreatedDate(post.getCreatedDate());
+    private PostDTO convertToDTO(Post post) {
+        if (post == null) {
+            return null; // O lanzar una excepción si prefieres manejar el caso de `null`
+        }
 
-        // Convert likes to usernames
-        Set<String> likesUsernames = post.getLikes().stream()
-                .map(User::getUsername)
-                .collect(Collectors.toSet());
-        postDTO.setLikes(likesUsernames);
-
-        // Convert comments to CommentDTO
-        List<CommentDTO> commentDTOs = post.getComments().stream()
-                .map(comment -> {
-                    return convertToDTO(comment);
-                })
-                .collect(Collectors.toList());
-        postDTO.setComments(commentDTOs);
-
-        return postDTO;
-    }
-
-    public CommentDTO convertToDTO(Comment comment) {
-        CommentDTO commentDTO = new CommentDTO();
-        commentDTO.setId(comment.getId());
-        commentDTO.setContent(comment.getContent());
-        commentDTO.setAuthorUsername(comment.getAuthor().getUsername());
-        commentDTO.setCreatedDate(comment.getCreatedDate());
-        return commentDTO;
+        return new PostDTOImpl(
+                post.getId(),
+                post.getContent(),
+                post.getImagePath(),
+                post.getOwner().toUserBasicDTO(), // Utilizamos el método que creamos en User
+                post.getCreatedDate(),
+                post.getLikes().stream()
+                        .map(User::toUserBasicDTO) // Utilizamos el método directamente desde la clase User
+                        .collect(Collectors.toSet()),
+                post.getComments().stream()
+                        .map(Comment::toCommentDTO) // Convertir cada comentario a CommentDTO
+                        .collect(Collectors.toList()));
     }
 
     private User getAuthenticatedUser() {

@@ -53,6 +53,40 @@ public class ErrorMessages {
         public static final ErrorDetail POST_UNAUTHORIZED = new ErrorDetail(
                         "You are not authorized to modify or delete this post.", HttpStatus.FORBIDDEN);
 
+        // Follow-related Error Messages
+        public static final ErrorDetail FOLLOW_REQUEST_ALREADY_SENT = new ErrorDetail(
+                        "A follow request has already been sent to this user.", HttpStatus.CONFLICT);
+
+        public static final ErrorDetail FOLLOW_REQUEST_NOT_FOUND = new ErrorDetail(
+                        "The follow request could not be found.", HttpStatus.NOT_FOUND);
+
+        public static final ErrorDetail FOLLOW_REQUEST_NOT_PENDING = new ErrorDetail(
+                        "The follow request is not pending.", HttpStatus.CONFLICT);
+
+        public static final ErrorDetail FOLLOW_REQUEST_ALREADY_ACCEPTED = new ErrorDetail(
+                        "The follow request has already been accepted.", HttpStatus.CONFLICT);
+
+        public static final ErrorDetail FOLLOW_REQUEST_ALREADY_REJECTED = new ErrorDetail(
+                        "The follow request has already been rejected.", HttpStatus.CONFLICT);
+
+        public static final ErrorDetail FOLLOW_OPERATION_FAILED = new ErrorDetail(
+                        "Failed to follow the user. Please try again later.", HttpStatus.INTERNAL_SERVER_ERROR);
+
+        public static final ErrorDetail UNFOLLOW_OPERATION_FAILED = new ErrorDetail(
+                        "Failed to unfollow the user. Please try again later.", HttpStatus.INTERNAL_SERVER_ERROR);
+
+        public static final ErrorDetail ACCEPT_FOLLOW_OPERATION_FAILED = new ErrorDetail(
+                        "Failed to accept follow request. Please try again later.", HttpStatus.INTERNAL_SERVER_ERROR);
+
+        public static final ErrorDetail REJECT_FOLLOW_OPERATION_FAILED = new ErrorDetail(
+                        "Failed to reject follow request. Please try again later.", HttpStatus.INTERNAL_SERVER_ERROR);
+
+        public static final ErrorDetail CANNOT_FOLLOW_YOURSELF = new ErrorDetail(
+                        "You cannot follow yourself.", HttpStatus.BAD_REQUEST);
+
+        public static final ErrorDetail ALREADY_FOLLOWING_USER = new ErrorDetail(
+                        "You are already following this user.", HttpStatus.CONFLICT);
+
         // Comment-related Error Messages
         public static final ErrorDetail COMMENT_NOT_FOUND = new ErrorDetail("Comment not found.", HttpStatus.NOT_FOUND);
 
@@ -80,11 +114,16 @@ public class ErrorMessages {
         public static final ErrorDetail FILE_STORAGE_FAILED = new ErrorDetail(
                         "Failed to store the image file.", HttpStatus.INTERNAL_SERVER_ERROR);
 
+        public static final ErrorDetail FILE_IS_EMPTY = new ErrorDetail(
+                        "File is empty.", HttpStatus.INTERNAL_SERVER_ERROR);
+
         public static final ErrorDetail FILE_DELETION_FAILED = new ErrorDetail(
                         "Failed to delete the image file.", HttpStatus.INTERNAL_SERVER_ERROR);
 
         public static final ErrorDetail INVALID_FILE_FORMAT = new ErrorDetail(
                         "Invalid file format. Please upload a valid image file.", HttpStatus.BAD_REQUEST);
+
+        // Notifications
 
         // Otros mensajes relacionados
         public static final ErrorDetail DATABASE_ERROR = new ErrorDetail(

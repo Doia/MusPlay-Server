@@ -1,5 +1,6 @@
 package com.andres.curso.springboot.app.springbootcrud.controllers;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -11,11 +12,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.andres.curso.springboot.app.springbootcrud.dto.CommentDTO;
 import com.andres.curso.springboot.app.springbootcrud.dto.PostDTO;
 import com.andres.curso.springboot.app.springbootcrud.entities.Comment;
 import com.andres.curso.springboot.app.springbootcrud.entities.Post;
+import com.andres.curso.springboot.app.springbootcrud.exceptions.ErrorMessages;
+import com.andres.curso.springboot.app.springbootcrud.exceptions.ServerException;
+import com.andres.curso.springboot.app.springbootcrud.services.ImageService;
 import com.andres.curso.springboot.app.springbootcrud.services.PostService;
 
 import jakarta.validation.Valid;
@@ -28,17 +33,46 @@ public class PostController {
     @Autowired
     private PostService postService;
 
+    @Autowired
+    private ImageService imageService;
+
     @PostMapping
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    public ResponseEntity<Map<String, Object>> createPost(@Valid @RequestBody Post post, BindingResult result) {
-        if (result.hasFieldErrors()) {
-            return validation(result);
+    public ResponseEntity<Map<String, Object>> createPost(
+            @RequestParam("text") String text,
+            @RequestParam(value = "file", required = false) MultipartFile file) {
+
+        // Validar los datos (puedes añadir más validaciones según sea necesario)
+        if (text == null || text.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("msg", "El texto del post no puede estar vacío"));
         }
 
-        PostDTO savedPost = postService.save(post);
+        // Inicializar imagePath
+        String imagePath = null;
+
+        // Si se ha proporcionado un archivo, procesarlo
+        if (file != null && !file.isEmpty()) {
+            try {
+                imagePath = imageService.storeImage(file, "/post");
+            } catch (IOException e) {
+                throw new ServerException(ErrorMessages.POST_CREATION_FAILED);
+            }
+        }
+
+        // Crear el objeto Post
+        Post post = new Post();
+        post.setContent(text);
+        post.setImagePath(imagePath);
+        PostDTO savedPost;
+        try {
+            // Guardar el post usando el servicio correspondiente
+            savedPost = postService.save(post);
+        } catch (Exception e) {
+            throw new ServerException(ErrorMessages.POST_CREATION_FAILED);
+        }
 
         Map<String, Object> response = new HashMap<>();
-        response.put("msg", "Post created successfully");
+        response.put("msg", "Post creado con éxito");
         response.put("post", savedPost);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -80,6 +114,22 @@ public class PostController {
         } catch (Exception e) {
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("error", "An error occurred while updating the post");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
+    }
+
+    @GetMapping("/feed")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    public ResponseEntity<Map<String, Object>> getFeedPosts() {
+        try {
+            List<PostDTO> feedPosts = postService.getFeedPosts();
+            Map<String, Object> response = new HashMap<>();
+            response.put("msg", "Feed posts retrieved successfully");
+            response.put("posts", feedPosts);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("error", "An error occurred while retrieving the feed posts");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
