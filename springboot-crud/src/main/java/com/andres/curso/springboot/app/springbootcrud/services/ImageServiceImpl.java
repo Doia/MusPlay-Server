@@ -14,11 +14,14 @@ import com.andres.curso.springboot.app.springbootcrud.repositories.UserRepositor
 import jakarta.transaction.Transactional;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 
 @Service
+@Transactional
 public class ImageServiceImpl implements ImageService {
 
     @Autowired
@@ -27,28 +30,73 @@ public class ImageServiceImpl implements ImageService {
     private final Path rootLocation = Paths.get("resources/images");
 
     @Override
-    @Transactional
     public String storeProfileImage(MultipartFile file, String folder) {
+
+        if (file.isEmpty()) {
+            throw new ServerException(ErrorMessages.FILE_IS_EMPTY);
+        }
+
         User authUser = getAuthenticatedUser();
 
-        Path folderPath = rootLocation.resolve(folder);
+        Path folderPath = Paths.get(rootLocation.toAbsolutePath().toString(), folder);
+        System.out.println(folderPath);
+
         try {
             Files.createDirectories(folderPath); // Crear los directorios si no existen
 
+            // Eliminar la imagen anterior si existe
             if (authUser.getImagePath() != null) {
-                // Si el usuario ya tiene una imagen de perfil, eliminarla
                 this.deleteImage(authUser.getImagePath(), folder);
             }
 
+            // Obtener la extensión del archivo
             String fileExtension = getFileExtension(file);
+            // Generar un nombre único para el archivo
             String filename = System.currentTimeMillis() + "_" + authUser.getUsername() + fileExtension;
 
+            // Definir la ruta del archivo de destino
             Path destinationFilePath = folderPath.resolve(filename);
-            Files.copy(file.getInputStream(), destinationFilePath);
 
-            // Actualizar el imagePath del usuario
+            // Copiar el archivo al destino
+            try (InputStream inputStream = file.getInputStream()) {
+                Files.copy(inputStream, destinationFilePath.toAbsolutePath(), StandardCopyOption.REPLACE_EXISTING);
+            }
+
+            // Actualizar el imagePath del usuario en la base de datos
             authUser.setImagePath(filename);
             userRepository.save(authUser);
+
+            return filename;
+        } catch (IOException e) {
+            throw new ServerException(ErrorMessages.FILE_STORAGE_FAILED);
+        }
+    }
+
+    public String storeImage(MultipartFile file, String folder) {
+        if (file.isEmpty()) {
+            throw new ServerException(ErrorMessages.FILE_IS_EMPTY);
+        }
+
+        User authUser = getAuthenticatedUser();
+
+        Path folderPath = Paths.get(rootLocation.toAbsolutePath().toString(), folder);
+        System.out.println(folderPath);
+
+        try {
+            Files.createDirectories(folderPath); // Crear los directorios si no existen
+
+            // Obtener la extensión del archivo
+            String fileExtension = getFileExtension(file);
+            // Generar un nombre único para el archivo
+            String filename = System.currentTimeMillis() + "_" + authUser.getUsername() + fileExtension;
+
+            // Definir la ruta del archivo de destino
+            Path destinationFilePath = folderPath.resolve(filename);
+
+            // Copiar el archivo al destino
+            try (InputStream inputStream = file.getInputStream()) {
+                Files.copy(inputStream, destinationFilePath.toAbsolutePath(), StandardCopyOption.REPLACE_EXISTING);
+            }
 
             return filename;
         } catch (IOException e) {

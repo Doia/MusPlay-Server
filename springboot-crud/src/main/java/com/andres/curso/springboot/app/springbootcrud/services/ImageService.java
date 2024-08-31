@@ -6,5 +6,7 @@ import java.io.IOException;
 public interface ImageService {
     public String storeProfileImage(MultipartFile file, String folder) throws IOException;
 
+    public String storeImage(MultipartFile file, String folder) throws IOException;
+
     public void deleteImage(String filename, String folder) throws IOException;
 }
