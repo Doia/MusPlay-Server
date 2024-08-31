@@ -2,6 +2,7 @@ package com.andres.curso.springboot.app.springbootcrud.dto;
 
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.andres.curso.springboot.app.springbootcrud.entities.Role;
 import com.andres.curso.springboot.app.springbootcrud.entities.User;
@@ -16,13 +17,15 @@ public class UserDTO {
     private String email;
     private String phone;
 
-    private int friendsCount;
+    private int followersCount;
+    private int followingCount;
     private int matchCount = 0;
 
     @JsonIgnoreProperties({ "users", "handler", "hibernateLazyInitializer" })
     private List<Role> roles;
 
-    private Set<String> friends;
+    private Set<String> followers;
+    private Set<String> follows;
     private Boolean enabled = null; // Changed to Boolean
     private Boolean admin = null; // Changed to Boolean
     private Boolean isAuthenticationUserFriend = null; // Changed to Boolean
@@ -52,9 +55,11 @@ public class UserDTO {
         this.username = user.getUsername();
         this.enabled = null;
         this.admin = null;
-        this.friendsCount = user.getFriends().size();
+
+        this.followersCount = user.getFollowers().size();
+        this.followingCount = user.getFollows().size();
         this.matchCount = 0;
-        this.firstName = user.getFirstName();
+        this.firstName = user.getName();
         this.lastName = user.getLastName();
         this.description = user.getDescription();
         this.imagePath = user.getImagePath();
@@ -64,12 +69,18 @@ public class UserDTO {
         this.privacyData = PrivacyLevel.PUBLIC;
         this.id = user.getId();
         this.username = user.getUsername();
-        this.friends = user.getFriends();
+        this.followers = user.getFollowers().stream()
+                .map(User::getUsername)
+                .collect(Collectors.toSet());
+        this.follows = user.getFollows().stream()
+                .map(User::getUsername)
+                .collect(Collectors.toSet());
         this.enabled = null;
         this.admin = null;
-        this.friendsCount = user.getFriends().size();
+        this.followersCount = user.getFollowers().size();
+        this.followingCount = user.getFollows().size();
         this.matchCount = 0;
-        this.firstName = user.getFirstName();
+        this.firstName = user.getName();
         this.lastName = user.getLastName();
         this.description = user.getDescription();
         this.imagePath = user.getImagePath();
@@ -82,13 +93,19 @@ public class UserDTO {
         this.email = user.getEmail();
         this.phone = user.getPhone();
         this.roles = user.getRoles();
-        this.friends = user.getFriends();
+        this.followers = user.getFollowers().stream()
+                .map(User::getUsername)
+                .collect(Collectors.toSet());
+        this.follows = user.getFollows().stream()
+                .map(User::getUsername)
+                .collect(Collectors.toSet());
         this.enabled = user.isEnabled();
         this.admin = user.isAdmin();
         this.privacyLevel = user.getPrivacyLevel();
-        this.friendsCount = user.getFriends().size();
+        this.followersCount = user.getFollowers().size();
+        this.followingCount = user.getFollows().size();
         this.matchCount = 0;
-        this.firstName = user.getFirstName();
+        this.firstName = user.getName();
         this.lastName = user.getLastName();
         this.description = user.getDescription();
         this.imagePath = user.getImagePath();
@@ -98,7 +115,8 @@ public class UserDTO {
         this.privacyData = PrivacyLevel.SAMPLE;
         this.id = user.getId();
         this.username = user.getUsername();
-        this.friendsCount = user.getFriends().size();
+        this.followersCount = user.getFollowers().size();
+        this.followingCount = user.getFollows().size();
         this.matchCount = 0;
         this.enabled = null;
         this.admin = null;
@@ -146,12 +164,20 @@ public class UserDTO {
         this.roles = roles;
     }
 
-    public Set<String> getFriends() {
-        return friends;
+    public Set<String> getFollowers() {
+        return followers;
     }
 
-    public void setFriends(Set<String> friends) {
-        this.friends = friends;
+    public void setFollowers(Set<String> followers) {
+        this.followers = followers;
+    }
+
+    public Set<String> getFollows() {
+        return follows;
+    }
+
+    public void setFollows(Set<String> follows) {
+        this.follows = follows;
     }
 
     public Boolean getEnabled() {
@@ -194,12 +220,20 @@ public class UserDTO {
         this.privacyData = privacyData;
     }
 
-    public int getFriendsCount() {
-        return friendsCount;
+    public int getFollowersCount() {
+        return followersCount;
     }
 
-    public void setFriendsCount(int friendsCount) {
-        this.friendsCount = friendsCount;
+    public void setFollowersCount(int followersCount) {
+        this.followersCount = followersCount;
+    }
+
+    public int getFollowingCount() {
+        return followingCount;
+    }
+
+    public void setFollowingCount(int followingCount) {
+        this.followingCount = followingCount;
     }
 
     public int getMatchCount() {
