@@ -4,8 +4,8 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "friend_requests")
-public class FriendRequest {
+@Table(name = "follow_requests")
+public class FollowRequest {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,14 +21,14 @@ public class FriendRequest {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private FriendRequestStatus status;
+    private FollowRequestStatus status;
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
-    public FriendRequest() {
+    public FollowRequest() {
         this.createdAt = LocalDateTime.now();
-        this.status = FriendRequestStatus.PENDING;
+        this.status = FollowRequestStatus.PENDING;
     }
 
     // Getters y setters
@@ -57,11 +57,11 @@ public class FriendRequest {
         this.receiver = receiver;
     }
 
-    public FriendRequestStatus getStatus() {
+    public FollowRequestStatus getStatus() {
         return status;
     }
 
-    public void setStatus(FriendRequestStatus status) {
+    public void setStatus(FollowRequestStatus status) {
         this.status = status;
     }
 

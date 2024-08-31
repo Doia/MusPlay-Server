@@ -1,6 +1,6 @@
 package com.andres.curso.springboot.app.springbootcrud.entities;
 
-public enum FriendRequestStatus {
+public enum FollowRequestStatus {
     PENDING,
     ACCEPTED,
     REJECTED
