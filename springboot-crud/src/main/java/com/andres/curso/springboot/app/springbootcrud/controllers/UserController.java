@@ -2,7 +2,6 @@ package com.andres.curso.springboot.app.springbootcrud.controllers;
 
 import java.util.HashMap;
 import java.util.List;
-import java.util.ArrayList;
 import java.util.Map;
 import java.util.Set;
 import java.util.HashSet;
@@ -23,7 +22,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.andres.curso.springboot.app.springbootcrud.dto.NotificationDTO;
-import com.andres.curso.springboot.app.springbootcrud.dto.PrivacyLevel;
 import com.andres.curso.springboot.app.springbootcrud.dto.UserBasicDTO;
 import com.andres.curso.springboot.app.springbootcrud.dto.UserDTO;
 import com.andres.curso.springboot.app.springbootcrud.entities.User;
@@ -63,22 +61,6 @@ public class UserController {
         Map<String, Object> response = new HashMap<>();
         response.put("data", usersDTO);
         return ResponseEntity.ok(response);
-    }
-
-    @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping
-    public ResponseEntity<?> create(@Valid @RequestBody User user, BindingResult result) {
-        if (result.hasFieldErrors()) {
-            return validation(result);
-        }
-        return ResponseEntity.status(HttpStatus.CREATED).body(userService.privateSave(user));
-    }
-
-    @PostMapping("/register")
-    public ResponseEntity<?> register(@Valid @RequestBody User user, BindingResult result) {
-        user.setAdmin(false);
-        user.setPrivacyLevel(PrivacyLevel.PUBLIC);
-        return create(user, result);
     }
 
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
@@ -186,12 +168,4 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
-    private ResponseEntity<?> validation(BindingResult result) {
-        Map<String, String> errors = new HashMap<>();
-
-        result.getFieldErrors().forEach(err -> {
-            errors.put(err.getField(), "El campo " + err.getField() + " " + err.getDefaultMessage());
-        });
-        return ResponseEntity.badRequest().body(errors);
-    }
 }

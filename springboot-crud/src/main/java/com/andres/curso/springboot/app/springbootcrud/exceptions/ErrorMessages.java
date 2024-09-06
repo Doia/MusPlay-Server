@@ -5,6 +5,9 @@ import org.springframework.http.HttpStatus;
 public class ErrorMessages {
 
         // General Error Messages
+        public static final ErrorDetail INVALID_REFRESH_TOKEN  = new ErrorDetail(
+                        "Refresh token is expired.", HttpStatus.FORBIDDEN);
+
         public static final ErrorDetail INTERNAL_SERVER_ERROR = new ErrorDetail(
                         "An unexpected error occurred. Please try again later.", HttpStatus.INTERNAL_SERVER_ERROR);
 

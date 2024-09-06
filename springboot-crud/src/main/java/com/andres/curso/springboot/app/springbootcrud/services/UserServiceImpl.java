@@ -30,14 +30,9 @@ import com.andres.curso.springboot.app.springbootcrud.repositories.NotificationR
 import com.andres.curso.springboot.app.springbootcrud.repositories.RoleRepository;
 import com.andres.curso.springboot.app.springbootcrud.repositories.UserRepository;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 @Service
 @Transactional
 public class UserServiceImpl implements UserService {
-
-    private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
 
     @Autowired
     private UserRepository userRepository;
@@ -379,7 +374,6 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Set<User> getFollowsById(Long id) {
-
         User authenticatedUser = getAuthenticatedUser();
 
         User user = userRepository.findById(id)

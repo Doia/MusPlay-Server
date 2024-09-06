@@ -19,7 +19,6 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
-import com.andres.curso.springboot.app.springbootcrud.security.filter.JwtAuthenticationFilter;
 import com.andres.curso.springboot.app.springbootcrud.security.filter.JwtValidationFilter;
 
 import java.util.Arrays;
@@ -44,12 +43,13 @@ public class SpringSecurityConfig {
     @Bean
     SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http.authorizeHttpRequests((authz) -> authz
-                .requestMatchers(HttpMethod.POST, "/login").permitAll()
-                .requestMatchers(HttpMethod.POST, "users/register").permitAll()
+                .requestMatchers(HttpMethod.POST, "/auth/**").permitAll()
+                //.requestMatchers(HttpMethod.POST, "/login").permitAll()
+                //.requestMatchers(HttpMethod.POST, "users/register").permitAll()
                 .requestMatchers("/profile-images/**").permitAll()
                 .requestMatchers("/post/**").permitAll()
                 .anyRequest().authenticated())
-                .addFilter(new JwtAuthenticationFilter(authenticationManager()))
+                //.addFilter(new JwtAuthenticationFilter(authenticationManager()))
                 .addFilter(new JwtValidationFilter(authenticationManager()))
                 .csrf(config -> config.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))

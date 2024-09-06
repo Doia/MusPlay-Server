@@ -6,7 +6,6 @@ import java.util.Set;
 import com.andres.curso.springboot.app.springbootcrud.dto.NotificationDTO;
 import com.andres.curso.springboot.app.springbootcrud.dto.UserBasicDTO;
 import com.andres.curso.springboot.app.springbootcrud.dto.UserDTO;
-import com.andres.curso.springboot.app.springbootcrud.entities.Notification;
 import com.andres.curso.springboot.app.springbootcrud.entities.User;
 
 public interface UserService {
