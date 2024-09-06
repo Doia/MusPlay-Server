@@ -13,6 +13,8 @@ Como hacer funcionar el servidor.
 
 Instalaciones necesarias antes de correr la aplicacion.
 
+0. Java LTS 17
+
 1. MAVEN: 
     1. Dirígete a https://maven.apache.org/download.cgi
     2. Descarga un Apache-maven.zip
@@ -25,8 +27,6 @@ Instalaciones necesarias antes de correr la aplicacion.
         Abre el Panel de Control y busca "Variables de entorno".
         En "Variables del sistema", haz clic en "Nueva" y crea una variable llamada M2_HOME con la ruta de la carpeta donde descomprimiste Maven.
         Agrega %M2_HOME%\bin a la variable Path. 
-            4. abrir consola de comando -> "node --verion" -> debería salir algo asi: "v20.16.0"
-            4. abrir consola de comando -> "npm --verion" -> debería salir algo asi: "10.8.1"
 
 2. BBDD
     1. Instalar BBDD mySql
