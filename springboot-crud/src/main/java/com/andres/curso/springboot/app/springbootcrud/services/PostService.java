@@ -2,6 +2,9 @@ package com.andres.curso.springboot.app.springbootcrud.services;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import com.andres.curso.springboot.app.springbootcrud.dto.CommentDTO;
 import com.andres.curso.springboot.app.springbootcrud.dto.PostDTO;
 import com.andres.curso.springboot.app.springbootcrud.entities.Comment;
@@ -16,9 +19,11 @@ public interface PostService {
 
     PostDTO findById(Long id);
 
-    List<PostDTO> getFeedPosts();
+    Page<PostDTO> getFeedPosts(Pageable pageable);
 
-    List<PostDTO> findPostsByUsername(String username);
+    Page<PostDTO> findPostsByUsername(String username, Pageable pageable);
+
+    Page<PostDTO> findPostsByUserId(Long userId, Pageable pageable);
 
     CommentDTO addComment(Long postId, @Valid Comment comment);
 

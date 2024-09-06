@@ -102,7 +102,7 @@ public class ImageController {
             if (currentUser.getImagePath() != null) {
                 imageService.deleteImage(currentUser.getImagePath(), "/profile-images");
                 currentUser.setImagePath(null);
-                userService.updateUser(currentUser);
+                userService.privateSave(currentUser);
                 return ResponseEntity.ok("Profile image deleted successfully");
             } else {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No profile image to delete");

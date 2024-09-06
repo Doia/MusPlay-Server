@@ -278,7 +278,9 @@ public class User {
         return true;
     }
 
-    public boolean isFollowing(String username2) {
-        return true;
+    public boolean isFollowing(Long idUser2) {
+        // Verifica si el usuario con el ID especificado está en el conjunto de usuarios
+        // que sigue este usuario
+        return follows.stream().anyMatch(user -> user.getId().equals(idUser2));
     }
 }

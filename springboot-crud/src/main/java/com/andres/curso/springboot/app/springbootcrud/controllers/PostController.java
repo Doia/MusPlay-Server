@@ -1,11 +1,13 @@
 package com.andres.curso.springboot.app.springbootcrud.controllers;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,6 +31,8 @@ import jakarta.validation.Valid;
 @RestController
 @RequestMapping("/posts")
 public class PostController {
+
+    int pageSize = 10;
 
     @Autowired
     private PostService postService;
@@ -120,40 +124,59 @@ public class PostController {
 
     @GetMapping("/feed")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    public ResponseEntity<Map<String, Object>> getFeedPosts() {
-        try {
-            List<PostDTO> feedPosts = postService.getFeedPosts();
-            Map<String, Object> response = new HashMap<>();
-            response.put("msg", "Feed posts retrieved successfully");
-            response.put("posts", feedPosts);
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            Map<String, Object> errorResponse = new HashMap<>();
-            errorResponse.put("error", "An error occurred while retrieving the feed posts");
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
-        }
+    public ResponseEntity<Map<String, Object>> getFeedPosts(
+            @RequestParam(defaultValue = "0") int page) {
+
+        Pageable pageable = PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, "createdDate"));
+
+        Page<PostDTO> feedPosts = postService.getFeedPosts(pageable);
+        Map<String, Object> response = new HashMap<>();
+        response.put("msg", "Feed posts retrieved successfully");
+        response.put("posts", feedPosts.getContent());
+        response.put("totalPages", feedPosts.getTotalPages());
+        response.put("totalElements", feedPosts.getTotalElements());
+        return ResponseEntity.ok(response);
+
+    }
+
+    @GetMapping("/userId/{userId}")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    public ResponseEntity<Map<String, Object>> getPostByUserId(
+            @PathVariable Long userId,
+            @RequestParam(defaultValue = "0") int page) {
+
+        Pageable pageable = PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, "createdDate"));
+
+        Page<PostDTO> posts = postService.findPostsByUserId(userId, pageable);
+        Map<String, Object> response = new HashMap<>();
+        response.put("msg", "Posts retrieved successfully");
+        response.put("posts", posts.getContent());
+        response.put("totalPages", posts.getTotalPages());
+        response.put("totalElements", posts.getTotalElements());
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/username/{username}")
-    public ResponseEntity<Map<String, Object>> getPostByUsername(@PathVariable String username) {
-        try {
-            List<PostDTO> posts = postService.findPostsByUsername(username);
-            if (posts.isEmpty()) {
-                Map<String, Object> response = new HashMap<>();
-                response.put("error", "No posts found for user");
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-            }
+    public ResponseEntity<Map<String, Object>> getPostByUsername(
+            @PathVariable String username,
+            @RequestParam(defaultValue = "0") int page) {
 
+        Pageable pageable = PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, "createdDate"));
+
+        Page<PostDTO> posts = postService.findPostsByUsername(username, pageable);
+        if (posts.isEmpty()) {
             Map<String, Object> response = new HashMap<>();
-            response.put("msg", "Posts retrieved successfully");
-            response.put("posts", posts);
-
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            Map<String, Object> errorResponse = new HashMap<>();
-            errorResponse.put("error", "An error occurred while retrieving the posts");
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+            response.put("error", "No posts found for user");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("msg", "Posts retrieved successfully");
+        response.put("posts", posts.getContent());
+        response.put("totalPages", posts.getTotalPages());
+        response.put("totalElements", posts.getTotalElements());
+
+        return ResponseEntity.ok(response);
     }
 
     // Create a Comment

@@ -35,6 +35,9 @@ public class ErrorMessages {
         public static final ErrorDetail USER_DELETION_FAILED = new ErrorDetail("Failed to delete the user.",
                         HttpStatus.INTERNAL_SERVER_ERROR);
 
+        public static final ErrorDetail USER_IS_PRIVATE = new ErrorDetail(
+                        "This user is private.", HttpStatus.OK);
+
         public static final ErrorDetail JSON_PROCESSING_ERROR = new ErrorDetail(
                         "Error processing JSON data.", HttpStatus.INTERNAL_SERVER_ERROR);
 

@@ -71,7 +71,7 @@ public class UserController {
         if (result.hasFieldErrors()) {
             return validation(result);
         }
-        return ResponseEntity.status(HttpStatus.CREATED).body(userService.save(user));
+        return ResponseEntity.status(HttpStatus.CREATED).body(userService.privateSave(user));
     }
 
     @PostMapping("/register")
@@ -79,6 +79,24 @@ public class UserController {
         user.setAdmin(false);
         user.setPrivacyLevel(PrivacyLevel.PUBLIC);
         return create(user, result);
+    }
+
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateUser(@PathVariable Long id, @Valid @RequestBody User user, BindingResult result) {
+        // if (result.hasFieldErrors()) {
+        // return validation(result);
+        // }
+
+        System.out.println("Entro!");
+
+        UserDTO updatedUser = userService.update(user);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("msg", "User updated successfully");
+        response.put("user", updatedUser);
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @PreAuthorize("hasRole('ADMIN') or #username == authentication.name")

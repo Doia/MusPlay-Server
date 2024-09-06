@@ -32,7 +32,7 @@ public class UserDTO {
     private PrivacyLevel privacyLevel;
     private PrivacyLevel privacyData;
 
-    private String firstName;
+    private String name;
     private String lastName;
     private String description;
     private String imagePath;
@@ -59,7 +59,7 @@ public class UserDTO {
         this.followersCount = user.getFollowers().size();
         this.followingCount = user.getFollows().size();
         this.matchCount = 0;
-        this.firstName = user.getName();
+        this.name = user.getName();
         this.lastName = user.getLastName();
         this.description = user.getDescription();
         this.imagePath = user.getImagePath();
@@ -80,7 +80,7 @@ public class UserDTO {
         this.followersCount = user.getFollowers().size();
         this.followingCount = user.getFollows().size();
         this.matchCount = 0;
-        this.firstName = user.getName();
+        this.name = user.getName();
         this.lastName = user.getLastName();
         this.description = user.getDescription();
         this.imagePath = user.getImagePath();
@@ -105,7 +105,7 @@ public class UserDTO {
         this.followersCount = user.getFollowers().size();
         this.followingCount = user.getFollows().size();
         this.matchCount = 0;
-        this.firstName = user.getName();
+        this.name = user.getName();
         this.lastName = user.getLastName();
         this.description = user.getDescription();
         this.imagePath = user.getImagePath();
@@ -244,12 +244,12 @@ public class UserDTO {
         this.matchCount = matchCount;
     }
 
-    public String getFirstName() {
-        return firstName;
+    public String getName() {
+        return name;
     }
 
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getLastName() {

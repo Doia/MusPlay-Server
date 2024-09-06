@@ -61,7 +61,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User save(User user) {
+    public User privateSave(User user) {
         List<Role> roles = new ArrayList<>();
 
         Optional<Role> optionalRoleUser = roleRepository.findByName("ROLE_USER");
@@ -75,6 +75,26 @@ public class UserServiceImpl implements UserService {
         user.setRoles(roles);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         return userRepository.save(user);
+    }
+
+    @Override
+    public UserDTO update(User user) {
+        User authenticatedUser = getAuthenticatedUser();
+
+        User oldUser = userRepository.findById(user.getId())
+                .orElseThrow(() -> new ServerException(ErrorMessages.USER_NOT_FOUND));
+
+        if (!authenticatedUser.isAdmin() && authenticatedUser.getId() != user.getId()) {
+            throw new ServerException(ErrorMessages.UNAUTHORIZED_ACCESS);
+        }
+
+        // Solo modificamos Nombre, Descripcion, Telefono y nivel de privacidad
+        oldUser.setName(user.getName());
+        oldUser.setDescription(user.getDescription());
+        oldUser.setPhone(user.getPhone());
+        oldUser.setPrivacyLevel(user.getPrivacyLevel());
+
+        return getUserDTO(userRepository.save(oldUser));
     }
 
     @Override
@@ -140,11 +160,6 @@ public class UserServiceImpl implements UserService {
                 .collect(Collectors.toList());
 
         return users;
-    }
-
-    @Override
-    public void updateUser(User user) {
-        userRepository.save(user);
     }
 
     @Override
@@ -253,13 +268,20 @@ public class UserServiceImpl implements UserService {
 
         } else {
             try {
+
+                FollowRequest followRequest = new FollowRequest();
+                followRequest.setSender(currentUser);
+                followRequest.setReceiver(userToFollow);
+                followRequest.setStatus(FollowRequestStatus.ACCEPTED);
+
                 currentUser.getFollows().add(userToFollow);
                 userToFollow.getFollowers().add(currentUser);
 
                 userRepository.save(currentUser);
                 userRepository.save(userToFollow);
 
-                Notification notification = new Notification(userToFollow, currentUser, NotificationType.FOLLOW, null);
+                Notification notification = new Notification(userToFollow, currentUser, NotificationType.FOLLOW_REQUEST,
+                        followRequest);
                 notificationRepository.save(notification);
 
             } catch (Exception e) {
@@ -321,10 +343,6 @@ public class UserServiceImpl implements UserService {
             userRepository.save(sender);
             userRepository.save(receiver);
             followRequestRepository.save(followRequest);
-
-            Notification notification = new Notification(receiver, sender, NotificationType.FOLLOW,
-                    null);
-            notificationRepository.save(notification);
 
         } catch (Exception e) {
             throw new ServerException(ErrorMessages.ACCEPT_FOLLOW_OPERATION_FAILED);

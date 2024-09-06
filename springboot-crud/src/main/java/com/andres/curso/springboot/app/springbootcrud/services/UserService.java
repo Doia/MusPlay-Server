@@ -13,9 +13,9 @@ public interface UserService {
 
     List<User> findAll();
 
-    User save(User user);
+    UserDTO update(User user);
 
-    void updateUser(User user);
+    User privateSave(User user);
 
     boolean existsByUsername(String username);
 

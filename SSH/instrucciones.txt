@@ -1,0 +1,22 @@
+
+
+ssh -i /path/key-pair-name.pem instance-user-name@instance-public-dns-name
+
+//conectarse
+
+ssh -i C:/Users/ddemi/Desktop/Proyectos/MasMus/MusPlay-Server/SSH/masmus-backend.pem ec2-user@ec2-18-202-174-189.eu-west-1.compute.amazonaws.com
+
+
+
+//copiar archivo de un ordenador a otro
+
+scp -i C:/Users/ddemi/Desktop/Proyectos/MasMus/MusPlay-Server/SSH/masmus-backend.pem C:/Users/ddemi/Desktop/Proyectos/MasMus/MusPlay-Server/springboot-crud/target/springboot-crud-0.0.1-SNAPSHOT.jar ec2-user@ec2-18-202-174-189.eu-west-1.compute.amazonaws.com:~/.
+
+
+//lanzar el servidor tras conectarse
+java -jar springboot-crud-0.0.1-SNAPSHOT.jar
+
+
+session https
+alias masmusKey
+contraseña 123masmus321

@@ -1,8 +1,9 @@
 package com.andres.curso.springboot.app.springbootcrud.repositories;
 
-import java.util.List;
 import java.util.Set;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -14,9 +15,9 @@ import com.andres.curso.springboot.app.springbootcrud.entities.User;
 public interface PostRepository extends JpaRepository<Post, Long> {
 
     // Método para encontrar posts por el propietario
-    List<PostDTO> findByOwner(User owner);
+    Page<PostDTO> findByOwner(User owner, Pageable pageable);
 
-    List<PostDTO> findByOwnerIn(Set<User> set);
+    Page<PostDTO> findByOwnerIn(Set<User> set, Pageable pageable);
 
     // Puedes agregar más métodos personalizados aquí si es necesario
 }
