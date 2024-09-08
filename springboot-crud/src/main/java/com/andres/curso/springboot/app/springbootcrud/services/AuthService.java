@@ -3,14 +3,9 @@ package com.andres.curso.springboot.app.springbootcrud.services;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 
 import com.andres.curso.springboot.app.springbootcrud.entities.AuthToken;
-import com.andres.curso.springboot.app.springbootcrud.entities.Role;
 import com.andres.curso.springboot.app.springbootcrud.entities.User;
 import com.andres.curso.springboot.app.springbootcrud.exceptions.ErrorMessages;
 import com.andres.curso.springboot.app.springbootcrud.exceptions.ServerException;
@@ -156,7 +151,7 @@ public class AuthService {
         User user = userRepository.findByUsername(identifier)
                     .orElse(null);
         if (user == null){
-            user = userRepository.findByUsername(identifier)
+            user = userRepository.findByEmail(identifier)
                     .orElseThrow(() -> new ServerException(ErrorMessages.USER_NOT_FOUND));
         }
         return user;
